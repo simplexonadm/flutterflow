@@ -25,6 +25,8 @@ const EditorCanvas = ({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [connectingFromId, setConnectingFromId] = useState<string | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const handleCanvasDrop = useCallback(
     (e: React.DragEvent) => {
@@ -95,7 +97,51 @@ const EditorCanvas = ({
     [blocks, edges, onUpdateBlocks, onUpdateEdges, onSelectBlock]
   );
 
-  // Draw connection lines
+  const handleConnectionStart = useCallback((blockId: string) => {
+    setConnectingFromId(blockId);
+  }, []);
+
+  const handleConnectionEnd = useCallback((targetBlockId: string) => {
+    if (!connectingFromId || connectingFromId === targetBlockId) {
+      setConnectingFromId(null);
+      return;
+    }
+
+    const existingEdge = edges.find(
+      e => e.source === connectingFromId && e.target === targetBlockId
+    );
+    
+    if (!existingEdge) {
+      const newEdge: Edge = {
+        id: uuidv4(),
+        source: connectingFromId,
+        target: targetBlockId,
+      };
+      onUpdateEdges([...edges, newEdge]);
+    }
+
+    setConnectingFromId(null);
+  }, [connectingFromId, edges, onUpdateEdges]);
+
+  const handleCanvasClick = useCallback(() => {
+    onSelectBlock(null);
+    setConnectingFromId(null);
+  }, [onSelectBlock]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (connectingFromId && canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      setMousePos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    }
+  }, [connectingFromId]);
+
+  const handleDeleteEdge = useCallback((edgeId: string) => {
+    onUpdateEdges(edges.filter(e => e.id !== edgeId));
+  }, [edges, onUpdateEdges]);
+
   const renderEdges = () => {
     return edges.map(edge => {
       const sourceBlock = blocks.find(b => b.id === edge.source);
@@ -122,11 +168,48 @@ const EditorCanvas = ({
             stroke="hsl(var(--border))"
             strokeWidth="2"
             strokeDasharray="none"
+            className="pointer-events-auto cursor-pointer hover:stroke-destructive transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteEdge(edge.id);
+            }}
+            data-testid={`edge-${edge.id}`}
           />
           <circle cx={targetX} cy={targetY} r="4" fill="hsl(var(--border))" />
         </svg>
       );
     });
+  };
+
+  const renderConnectingLine = () => {
+    if (!connectingFromId) return null;
+
+    const sourceBlock = blocks.find(b => b.id === connectingFromId);
+    if (!sourceBlock) return null;
+
+    const sourceX = sourceBlock.position.x + 128;
+    const sourceY = sourceBlock.position.y + 80;
+    const targetX = mousePos.x;
+    const targetY = mousePos.y;
+
+    const midY = (sourceY + targetY) / 2;
+
+    return (
+      <svg
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        style={{ zIndex: 5 }}
+      >
+        <path
+          d={`M ${sourceX} ${sourceY} C ${sourceX} ${midY}, ${targetX} ${midY}, ${targetX} ${targetY}`}
+          fill="none"
+          stroke="hsl(var(--primary))"
+          strokeWidth="2"
+          strokeDasharray="8 4"
+          className="animate-pulse"
+        />
+        <circle cx={targetX} cy={targetY} r="6" fill="hsl(var(--primary))" className="animate-pulse" />
+      </svg>
+    );
   };
 
   return (
@@ -135,10 +218,19 @@ const EditorCanvas = ({
       className="relative flex-1 overflow-auto canvas-grid bg-muted/30"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleCanvasDrop}
-      onClick={() => onSelectBlock(null)}
+      onClick={handleCanvasClick}
+      onMouseMove={handleMouseMove}
+      data-testid="editor-canvas"
     >
+      {connectingFromId && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium shadow-lg animate-bounce">
+          Clique no ponto de entrada de outro bloco para conectar
+        </div>
+      )}
+      
       <div className="relative min-h-full min-w-full p-8" style={{ minHeight: '800px', minWidth: '800px' }}>
         {renderEdges()}
+        {renderConnectingLine()}
         
         {blocks.map(block => (
           <FlowBlock
@@ -149,6 +241,10 @@ const EditorCanvas = ({
             onDelete={() => handleDeleteBlock(block.id)}
             onDragStart={(e) => handleBlockDragStart(e, block.id)}
             onDragEnd={handleBlockDragEnd}
+            onConnectionStart={handleConnectionStart}
+            onConnectionEnd={handleConnectionEnd}
+            isConnecting={!!connectingFromId}
+            connectingFromId={connectingFromId}
           />
         ))}
       </div>
