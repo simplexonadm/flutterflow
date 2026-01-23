@@ -10,6 +10,10 @@ interface FlowBlockProps {
   onDelete: () => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: (e: React.DragEvent) => void;
+  onConnectionStart?: (blockId: string) => void;
+  onConnectionEnd?: (blockId: string) => void;
+  isConnecting?: boolean;
+  connectingFromId?: string | null;
 }
 
 const iconMap: Record<string, React.ElementType> = {
@@ -45,7 +49,18 @@ const labelMap: Record<string, string> = {
   end: 'Fim',
 };
 
-const FlowBlock = ({ block, isSelected, onSelect, onDelete, onDragStart, onDragEnd }: FlowBlockProps) => {
+const FlowBlock = ({ 
+  block, 
+  isSelected, 
+  onSelect, 
+  onDelete, 
+  onDragStart, 
+  onDragEnd,
+  onConnectionStart,
+  onConnectionEnd,
+  isConnecting,
+  connectingFromId,
+}: FlowBlockProps) => {
   const Icon = iconMap[block.type];
   const colorClass = colorMap[block.type];
   const label = labelMap[block.type];
@@ -56,6 +71,22 @@ const FlowBlock = ({ block, isSelected, onSelect, onDelete, onDragStart, onDragE
     if (block.config.options) return block.config.options.join(', ');
     return 'Configurar...';
   };
+
+  const handleOutputClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onConnectionStart) {
+      onConnectionStart(block.id);
+    }
+  };
+
+  const handleInputClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onConnectionEnd && isConnecting && connectingFromId !== block.id) {
+      onConnectionEnd(block.id);
+    }
+  };
+
+  const canBeTarget = isConnecting && connectingFromId !== block.id && block.type !== 'start';
 
   return (
     <div
@@ -70,6 +101,7 @@ const FlowBlock = ({ block, isSelected, onSelect, onDelete, onDragStart, onDragE
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      data-testid={`block-${block.type}-${block.id}`}
     >
       <div className="flex items-center gap-2 border-b border-border/50 px-3 py-2">
         <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
@@ -84,6 +116,7 @@ const FlowBlock = ({ block, isSelected, onSelect, onDelete, onDragStart, onDragE
               e.stopPropagation();
               onDelete();
             }}
+            data-testid={`button-delete-block-${block.id}`}
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -98,12 +131,32 @@ const FlowBlock = ({ block, isSelected, onSelect, onDelete, onDragStart, onDragE
         )}
       </div>
       
-      {/* Connection points */}
+      {/* Output connection point (bottom) */}
       {block.type !== 'end' && (
-        <div className="absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-border bg-card" />
+        <div 
+          className={`absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-card cursor-pointer transition-all z-10 ${
+            isConnecting && connectingFromId === block.id 
+              ? 'border-primary bg-primary scale-125' 
+              : 'border-border hover:border-primary hover:bg-primary/20 hover:scale-110'
+          }`}
+          onClick={handleOutputClick}
+          title="Clique para conectar a outro bloco"
+          data-testid={`connection-output-${block.id}`}
+        />
       )}
+      
+      {/* Input connection point (top) */}
       {block.type !== 'start' && (
-        <div className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-border bg-card" />
+        <div 
+          className={`absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-card transition-all z-10 ${
+            canBeTarget 
+              ? 'border-success bg-success/20 cursor-pointer scale-125 animate-pulse' 
+              : 'border-border'
+          } ${canBeTarget ? 'hover:bg-success hover:scale-150' : ''}`}
+          onClick={handleInputClick}
+          title={canBeTarget ? "Clique para conectar aqui" : undefined}
+          data-testid={`connection-input-${block.id}`}
+        />
       )}
     </div>
   );
