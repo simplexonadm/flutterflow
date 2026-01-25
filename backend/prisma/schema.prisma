@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Usuários
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(CREATOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chatbots Chatbot[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  CREATOR
+  CLIENT
+}
+
+// Chatbots
+model Chatbot {
+  id          String   @id @default(uuid())
+  name        String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  isPublished Boolean  @default(false)
+  
+  // Theme
+  primaryColor    String   @default("#0066FF")
+  themeMode       String   @default("light")
+  buttonPosition  String   @default("right")
+  buttonText      String   @default("Fale conosco")
+  avatar          String   @default("🤖")
+  
+  // Content
+  blocks        Block[]
+  edges         Edge[]
+  leads         Lead[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("chatbots")
+}
+
+// Blocos do editor
+model Block {
+  id          String   @id @default(uuid())
+  chatbotId   String
+  chatbot     Chatbot  @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  
+  type        String
+  positionX   Float
+  positionY   Float
+  
+  message         String?
+  question        String?
+  variableName    String?
+  placeholder     String?
+  options         String?
+  conditionVariable String?
+  conditionValue  String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("blocks")
+}
+
+// Conexões entre blocos
+model Edge {
+  id        String   @id @default(uuid())
+  chatbotId String
+  chatbot   Chatbot  @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  
+  source    String
+  target    String
+  label     String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("edges")
+}
+
+// Leads capturados
+model Lead {
+  id          String   @id @default(uuid())
+  chatbotId   String
+  chatbot     Chatbot  @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  
+  status      LeadStatus @default(STARTED)
+  answers     LeadAnswer[]
+  
+  pageUrl     String?
+  userAgent   String?
+  
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime @updatedAt
+  
+  @@map("leads")
+}
+
+enum LeadStatus {
+  STARTED
+  COMPLETED
+  ABANDONED
+}
+
+// Respostas capturadas
+model LeadAnswer {
+  id          String   @id @default(uuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  variableName String
+  value       String
+  
+  createdAt DateTime @default(now())
+  
+  @@map("lead_answers")
+}
+
+// Tokens de refresh
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("refresh_tokens")
+}
