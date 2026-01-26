@@ -1,6 +1,8 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { errorMiddleware } from './middleware/authMiddleware';
+import authRoutes from './routes/authRoutes';
 
 dotenv.config();
 
@@ -19,7 +21,10 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', message: 'Servidor rodando!', timestamp: new Date() });
 });
 
-// Placeholder para rotas
+// API Routes
+app.use('/api/auth', authRoutes);
+
+// Placeholder para outras rotas
 app.use('/api', (req: Request, res: Response) => {
   res.json({ message: 'API em desenvolvimento' });
 });
@@ -28,5 +33,8 @@ app.use('/api', (req: Request, res: Response) => {
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: 'Rota não encontrada' });
 });
+
+// Error middleware
+app.use(errorMiddleware);
 
 export default app;
