@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Header from '@/components/layout/Header';
 import ChatbotCard from '@/components/dashboard/ChatbotCard';
 import CreateChatbotDialog from '@/components/dashboard/CreateChatbotDialog';
-import { useChatbots, useLeads } from '@/hooks/useMockApi';
+import { useChatbots } from '@/hooks/useChatbots';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -24,22 +24,23 @@ const Dashboard = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleCreate = async (name: string) => {
-    const newChatbot = await createChatbot(name);
-    navigate(`/editor/${newChatbot.id}`);
+    try {
+      const newChatbot = await createChatbot(name);
+      navigate(`/editor/${newChatbot.id}`);
+    } catch (error) {
+      console.error('Erro ao criar chatbot:', error);
+    }
   };
 
   const handleDelete = async () => {
     if (deleteId) {
-      await deleteChatbot(deleteId);
-      setDeleteId(null);
+      try {
+        await deleteChatbot(deleteId);
+        setDeleteId(null);
+      } catch (error) {
+        console.error('Erro ao deletar chatbot:', error);
+      }
     }
-  };
-
-  // Get lead counts for each chatbot
-  const getLeadCount = (chatbotId: string) => {
-    const data = localStorage.getItem('leadchat_leads');
-    const leads = data ? JSON.parse(data) : [];
-    return leads.filter((l: any) => l.chatbotId === chatbotId).length;
   };
 
   return (
@@ -97,7 +98,7 @@ const Dashboard = () => {
               >
                 <ChatbotCard
                   chatbot={chatbot}
-                  leadCount={getLeadCount(chatbot.id)}
+                  leadCount={chatbot._count?.leads || 0}
                   onDelete={(id) => setDeleteId(id)}
                 />
               </motion.div>

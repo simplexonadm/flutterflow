@@ -669,11 +669,11 @@ CMD ["node", "dist/server.js"]
 - [x] Testes
 
 ### Frontend
-- [ ] Serviço HTTP
-- [ ] Atualizar hooks
-- [ ] Remover mock data
+- [x] Serviço HTTP
+- [x] Atualizar hooks
+- [x] Remover mock data
 - [ ] Testes e-2-e
-- [ ] Integração completa
+- [x] Integração completa
 
 ---
 

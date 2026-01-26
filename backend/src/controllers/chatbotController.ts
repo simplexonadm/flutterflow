@@ -44,6 +44,19 @@ export const getChatbot = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * GET /api/chatbots/public/all
+ * Listar todos os chatbots publicados (público)
+ */
+export const getPublishedChatbots = async (req: Request, res: Response) => {
+  try {
+    const chatbots = await ChatbotService.getPublishedChatbots();
+    return res.status(200).json({ chatbots });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Erro ao listar chatbots publicados' });
+  }
+};
+
+/**
  * POST /api/chatbots
  * Criar novo chatbot
  */

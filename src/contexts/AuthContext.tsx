@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import type { User, UserRole, AuthState, LoginCredentials, RegisterCredentials } from '@/types/auth';
+import { api } from '@/lib/api';
+import type { User, AuthState, LoginCredentials, RegisterCredentials } from '@/types/auth';
 
-const STORAGE_KEY = 'leadchat_users';
 const SESSION_KEY = 'leadchat_session';
+const ACCESS_TOKEN_KEY = 'leadchat_accessToken';
+const REFRESH_TOKEN_KEY = 'leadchat_refreshToken';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
@@ -21,25 +22,20 @@ export const useAuth = () => {
   return context;
 };
 
-const getUsers = (): User[] => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
-};
-
-const saveUsers = (users: User[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-};
-
 const getSession = (): string | null => {
   return localStorage.getItem(SESSION_KEY);
 };
 
-const saveSession = (userId: string) => {
+const saveTokens = (accessToken: string, refreshToken: string, userId: string) => {
+  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   localStorage.setItem(SESSION_KEY, userId);
 };
 
 const clearSession = () => {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -49,81 +45,90 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading: true,
   });
 
-  useEffect(() => {
-    const userId = getSession();
-    if (userId) {
-      const users = getUsers();
-      const user = users.find(u => u.id === userId);
-      if (user) {
-        const { password, ...userWithoutPassword } = user;
-        setState({
-          user: userWithoutPassword,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        return;
-      }
+  const fetchProfile = useCallback(async () => {
+    try {
+      const data = await api.get<{ id: string; email: string; role: string }>('/auth/me');
+      setState({
+        user: {
+          id: data.id,
+          email: data.email,
+          role: data.role.toLowerCase() as any,
+          createdAt: '', // API doesn't return this in standard getProfile but we can adapt
+        },
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      clearSession();
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
     }
-    setState(prev => ({ ...prev, isLoading: false }));
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (token) {
+      fetchProfile();
+    } else {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, [fetchProfile]);
+
   const login = useCallback(async (credentials: LoginCredentials): Promise<{ success: boolean; error?: string }> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    try {
+      const response = await api.post<{ user: any; tokens: any }>('/auth/login', credentials);
 
-    const users = getUsers();
-    const user = users.find(u => u.email === credentials.email);
+      saveTokens(
+        response.tokens.accessToken,
+        response.tokens.refreshToken,
+        response.user.id
+      );
 
-    if (!user) {
-      return { success: false, error: 'Email não encontrado' };
+      setState({
+        user: {
+          id: response.user.id,
+          email: response.user.email,
+          role: response.user.role?.toLowerCase() || 'creator',
+          createdAt: new Date().toISOString(),
+        },
+        isAuthenticated: true,
+        isLoading: false,
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
-
-    if (user.password !== credentials.password) {
-      return { success: false, error: 'Senha incorreta' };
-    }
-
-    const { password, ...userWithoutPassword } = user;
-    saveSession(user.id);
-    setState({
-      user: userWithoutPassword,
-      isAuthenticated: true,
-      isLoading: false,
-    });
-
-    return { success: true };
   }, []);
 
   const register = useCallback(async (credentials: RegisterCredentials): Promise<{ success: boolean; error?: string }> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    try {
+      const response = await api.post<{ user: any; tokens: any }>('/auth/register', credentials);
 
-    const users = getUsers();
-    const existingUser = users.find(u => u.email === credentials.email);
+      saveTokens(
+        response.tokens.accessToken,
+        response.tokens.refreshToken,
+        response.user.id
+      );
 
-    if (existingUser) {
-      return { success: false, error: 'Este email já está cadastrado' };
+      setState({
+        user: {
+          id: response.user.id,
+          email: response.user.email,
+          role: response.user.role?.toLowerCase() || 'creator',
+          createdAt: new Date().toISOString(),
+        },
+        isAuthenticated: true,
+        isLoading: false,
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
-
-    if (credentials.password.length < 6) {
-      return { success: false, error: 'A senha deve ter pelo menos 6 caracteres' };
-    }
-
-    const newUser: User = {
-      id: uuidv4(),
-      email: credentials.email,
-      password: credentials.password,
-      role: credentials.role,
-      createdAt: new Date().toISOString(),
-    };
-
-    saveUsers([...users, newUser]);
-    const { password, ...userWithoutPassword } = newUser;
-    saveSession(newUser.id);
-    setState({
-      user: userWithoutPassword,
-      isAuthenticated: true,
-      isLoading: false,
-    });
-
-    return { success: true };
   }, []);
 
   const logout = useCallback(() => {

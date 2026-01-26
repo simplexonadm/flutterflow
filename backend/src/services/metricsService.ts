@@ -1,6 +1,5 @@
-import { PrismaClient, LeadStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { LeadStatus } from '@prisma/client';
+import prisma from '../lib/prisma';
 
 export interface ChatbotMetrics {
   totalLeads: number;

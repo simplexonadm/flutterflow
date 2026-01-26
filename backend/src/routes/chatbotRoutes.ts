@@ -7,6 +7,7 @@ import {
   deleteChatbot,
   publishChatbot,
   getPublicChatbot,
+  getPublishedChatbots,
   updateChatbotContent,
   addBlock,
   editBlock,
@@ -59,6 +60,12 @@ router.delete('/:id', authMiddleware, deleteChatbot);
  * Publicar chatbot (protegido)
  */
 router.post('/:id/publish', authMiddleware, publishChatbot);
+
+/**
+ * GET /api/chatbots/public/all
+ * Listar todos os chatbots publicados (sem autenticação)
+ */
+router.get('/public/all', getPublishedChatbots);
 
 /**
  * GET /api/chatbots/:id/public

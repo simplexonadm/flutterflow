@@ -8,7 +8,7 @@ import EditorCanvas from '@/components/editor/EditorCanvas';
 import BlockConfigPanel from '@/components/editor/BlockConfigPanel';
 import ChatPreview from '@/components/editor/ChatPreview';
 import PublishDialog from '@/components/editor/PublishDialog';
-import { useChatbot } from '@/hooks/useMockApi';
+import { useChatbot } from '@/hooks/useChatbot';
 import type { BlockType, Block, ChatbotTheme } from '@/types/chatbot';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

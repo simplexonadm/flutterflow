@@ -1,6 +1,5 @@
-import { PrismaClient, Block as PrismaBlock, Edge as PrismaEdge } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { Block as PrismaBlock, Edge as PrismaEdge } from '@prisma/client';
+import prisma from '../lib/prisma';
 
 /**
  * Converter Block do Prisma para formato do frontend
@@ -184,6 +183,37 @@ export class ChatbotService {
       blocks: chatbot.blocks.map(convertBlockToFrontend),
       edges: chatbot.edges.map(convertEdgeToFrontend),
     };
+  }
+
+  /**
+   * Listar todos os chatbots publicados (público)
+   */
+  static async getPublishedChatbots() {
+    const chatbots = await prisma.chatbot.findMany({
+      where: { isPublished: true },
+      include: {
+        blocks: true,
+        edges: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return chatbots.map((chatbot) => ({
+      id: chatbot.id,
+      name: chatbot.name,
+      createdAt: chatbot.createdAt.toISOString(),
+      updatedAt: chatbot.updatedAt.toISOString(),
+      isPublished: chatbot.isPublished,
+      theme: {
+        primaryColor: chatbot.primaryColor,
+        mode: chatbot.themeMode as 'light' | 'dark',
+        buttonPosition: chatbot.buttonPosition as 'left' | 'right',
+        buttonText: chatbot.buttonText,
+        avatar: chatbot.avatar,
+      },
+      blocks: chatbot.blocks.map(convertBlockToFrontend),
+      edges: chatbot.edges.map(convertEdgeToFrontend),
+    }));
   }
 
   /**
