@@ -13,8 +13,8 @@ interface ChatPreviewProps {
 }
 
 const ChatPreview = ({ chatbot, isOpen, onClose }: ChatPreviewProps) => {
-  const { currentBlock, answers, isComplete, submitAnswer, goNext, reset, interpolateMessage } = useChatSession(chatbot);
   const [inputValue, setInputValue] = useState('');
+  const { currentBlock, answers, isComplete, submitAnswer, goNext, reset, interpolateMessage } = useChatSession(chatbot);
 
   const handleSubmit = (value?: string) => {
     const val = value || inputValue;
@@ -64,7 +64,7 @@ const ChatPreview = ({ chatbot, isOpen, onClose }: ChatPreviewProps) => {
       );
     }
 
-    const message = interpolateMessage(currentBlock.config.message || currentBlock.config.question || '');
+    const message = interpolateMessage((currentBlock.config as any).message || (currentBlock.config as any).question || '');
 
     return (
       <div className="flex flex-col h-full">
@@ -97,9 +97,9 @@ const ChatPreview = ({ chatbot, isOpen, onClose }: ChatPreviewProps) => {
 
         {/* Input area */}
         <div className="border-t border-border p-4">
-          {currentBlock.type === 'choice' && currentBlock.config.options ? (
+          {(currentBlock.type === 'choice' && (currentBlock.config as any).options) ? (
             <div className="flex flex-wrap gap-2">
-              {currentBlock.config.options.map((option, index) => (
+              {(currentBlock.config as any).options.map((option: string, index: number) => (
                 <Button
                   key={index}
                   variant="outline"
@@ -111,7 +111,7 @@ const ChatPreview = ({ chatbot, isOpen, onClose }: ChatPreviewProps) => {
                 </Button>
               ))}
             </div>
-          ) : currentBlock.type === 'start' || currentBlock.type === 'message' || currentBlock.type === 'end' ? (
+          ) : (currentBlock.type === 'start' || currentBlock.type === 'message' || currentBlock.type === 'end') ? (
             <Button 
               onClick={() => handleSubmit()} 
               className="w-full"
@@ -131,7 +131,7 @@ const ChatPreview = ({ chatbot, isOpen, onClose }: ChatPreviewProps) => {
                 type={getInputType()}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder={currentBlock.config.placeholder || 'Digite sua resposta...'}
+                placeholder={(currentBlock.config as any).placeholder || 'Digite sua resposta...'}
                 className="flex-1"
                 autoFocus
               />
