@@ -32,16 +32,23 @@ const Editor = () => {
     setDraggedBlockType(type);
   }, []);
 
-  const handleUpdateBlocks = useCallback(async (blocks: Block[]) => {
+  const handleUpdateBlocks = useCallback((blocks: Block[]) => {
     if (!chatbot) return;
-    await updateBlocks(blocks, chatbot.edges);
+    console.log('📝 handleUpdateBlocks chamado com', blocks.length, 'blocos');
+    const updatedChatbot = { ...chatbot, blocks };
+    setChatbot(updatedChatbot);
+    console.log('✅ Chatbot atualizado no estado local');
+    updateBlocks(blocks, chatbot.edges);
+    console.log('📡 updateBlocks chamado');
     setDraggedBlockType(null);
-  }, [chatbot, updateBlocks]);
+  }, [chatbot, updateBlocks, setChatbot]);
 
-  const handleUpdateEdges = useCallback(async (edges: typeof chatbot.edges) => {
-    if (!chatbot) return;
-    await updateBlocks(chatbot.blocks, edges);
-  }, [chatbot, updateBlocks]);
+  const handleUpdateEdges = useCallback((edges: typeof chatbot?.edges) => {
+    if (!chatbot || !edges) return;
+    const updatedChatbot = { ...chatbot, edges };
+    setChatbot(updatedChatbot);
+    updateBlocks(chatbot.blocks, edges);
+  }, [chatbot, updateBlocks, setChatbot]);
 
   const handleUpdateBlockConfig = useCallback((config: Block['config']) => {
     if (!chatbot || !selectedBlockId) return;

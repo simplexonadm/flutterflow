@@ -87,19 +87,36 @@ const EditorCanvas = ({
 
   const handleDeleteBlock = useCallback(
     (blockId: string) => {
+      console.log('🗑️ DELETE INICIADO para bloco:', blockId);
+      console.log('📊 Blocos ANTES:', blocks.map(b => b.id));
+      
       const block = blocks.find(b => b.id === blockId);
-      // Não permitir deletar bloco 'start'
-      if (!block || block.type === 'start') {
+      
+      if (!block) {
+        console.error('❌ Bloco não encontrado!');
+        return;
+      }
+      
+      if (block.type === 'start') {
+        console.warn('⚠️ Não pode deletar bloco de início');
         return;
       }
 
-      // Remover bloco e suas conexões
       const updatedBlocks = blocks.filter(b => b.id !== blockId);
       const updatedEdges = edges.filter(e => e.source !== blockId && e.target !== blockId);
       
+      console.log('📊 Blocos DEPOIS:', updatedBlocks.map(b => b.id));
+      console.log('📊 Bloco foi removido?', !updatedBlocks.find(b => b.id === blockId));
+      console.log('🔌 Edges antes:', edges.length, '| depois:', updatedEdges.length);
+      
+      console.log('📤 Chamando onUpdateBlocks com', updatedBlocks.length, 'blocos');
       onUpdateBlocks(updatedBlocks);
+      
+      console.log('📤 Chamando onUpdateEdges com', updatedEdges.length, 'edges');
       onUpdateEdges(updatedEdges);
+      
       onSelectBlock(null);
+      console.log('✅ DELETE COMPLETADO');
     },
     [blocks, edges, onUpdateBlocks, onUpdateEdges, onSelectBlock]
   );
