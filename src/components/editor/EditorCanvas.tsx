@@ -88,10 +88,17 @@ const EditorCanvas = ({
   const handleDeleteBlock = useCallback(
     (blockId: string) => {
       const block = blocks.find(b => b.id === blockId);
-      if (!block || block.type === 'start') return;
+      // Não permitir deletar bloco 'start'
+      if (!block || block.type === 'start') {
+        return;
+      }
 
-      onUpdateBlocks(blocks.filter(b => b.id !== blockId));
-      onUpdateEdges(edges.filter(e => e.source !== blockId && e.target !== blockId));
+      // Remover bloco e suas conexões
+      const updatedBlocks = blocks.filter(b => b.id !== blockId);
+      const updatedEdges = edges.filter(e => e.source !== blockId && e.target !== blockId);
+      
+      onUpdateBlocks(updatedBlocks);
+      onUpdateEdges(updatedEdges);
       onSelectBlock(null);
     },
     [blocks, edges, onUpdateBlocks, onUpdateEdges, onSelectBlock]
