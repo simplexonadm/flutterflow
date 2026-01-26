@@ -409,4 +409,142 @@ export class ChatbotService {
     // Retornar chatbot atualizado
     return this.getChatbotById(chatbotId, userId);
   }
+
+  /**
+   * Adicionar bloco individual
+   */
+  static async createBlock(chatbotId: string, userId: string, data: any) {
+    // Verificar ownership
+    await this.getChatbotById(chatbotId, userId);
+
+    const block = await prisma.block.create({
+      data: {
+        chatbotId,
+        type: data.type,
+        positionX: data.position?.x || 0,
+        positionY: data.position?.y || 0,
+        message: data.config?.message || null,
+        question: data.config?.question || null,
+        variableName: data.config?.variableName || null,
+        placeholder: data.config?.placeholder || null,
+        options: data.config?.options ? JSON.stringify(data.config.options) : null,
+        conditionVariable: data.config?.conditionVariable || null,
+        conditionValue: data.config?.conditionValue || null,
+      },
+    });
+
+    return convertBlockToFrontend(block);
+  }
+
+  /**
+   * Atualizar bloco individual
+   */
+  static async updateBlock(blockId: string, chatbotId: string, userId: string, data: any) {
+    // Verificar ownership do chatbot
+    await this.getChatbotById(chatbotId, userId);
+
+    // Verificar se bloco pertence ao chatbot
+    const existingBlock = await prisma.block.findFirst({
+      where: { id: blockId, chatbotId },
+    });
+
+    if (!existingBlock) {
+      throw new Error('Bloco não encontrado neste chatbot');
+    }
+
+    const updated = await prisma.block.update({
+      where: { id: blockId },
+      data: {
+        type: data.type,
+        positionX: data.position?.x ?? undefined,
+        positionY: data.position?.y ?? undefined,
+        message: data.config?.message ?? undefined,
+        question: data.config?.question ?? undefined,
+        variableName: data.config?.variableName ?? undefined,
+        placeholder: data.config?.placeholder ?? undefined,
+        options: data.config?.options ? JSON.stringify(data.config.options) : undefined,
+        conditionVariable: data.config?.conditionVariable ?? undefined,
+        conditionValue: data.config?.conditionValue ?? undefined,
+      },
+    });
+
+    return convertBlockToFrontend(updated);
+  }
+
+  /**
+   * Deletar bloco individual
+   */
+  static async deleteBlock(blockId: string, chatbotId: string, userId: string) {
+    // Verificar ownership do chatbot
+    await this.getChatbotById(chatbotId, userId);
+
+    // Verificar se bloco pertence ao chatbot
+    const existingBlock = await prisma.block.findFirst({
+      where: { id: blockId, chatbotId },
+    });
+
+    if (!existingBlock) {
+      throw new Error('Bloco não encontrado neste chatbot');
+    }
+
+    await prisma.block.delete({
+      where: { id: blockId },
+    });
+
+    return { message: 'Bloco deletado com sucesso' };
+  }
+
+  /**
+   * Adicionar edge individual
+   */
+  static async createEdge(chatbotId: string, userId: string, data: any) {
+    // Verificar ownership do chatbot
+    await this.getChatbotById(chatbotId, userId);
+
+    // Verificar se blocos existem
+    const blocks = await prisma.block.findMany({
+      where: {
+        id: { in: [data.source, data.target] },
+        chatbotId,
+      },
+    });
+
+    if (blocks.length < 2 && data.source !== data.target) {
+      throw new Error('Blocos de origem ou destino não encontrados');
+    }
+
+    const edge = await prisma.edge.create({
+      data: {
+        chatbotId,
+        source: data.source,
+        target: data.target,
+        label: data.label || null,
+      },
+    });
+
+    return convertEdgeToFrontend(edge);
+  }
+
+  /**
+   * Deletar edge individual
+   */
+  static async deleteEdge(edgeId: string, chatbotId: string, userId: string) {
+    // Verificar ownership do chatbot
+    await this.getChatbotById(chatbotId, userId);
+
+    // Verificar se edge pertence ao chatbot
+    const existingEdge = await prisma.edge.findFirst({
+      where: { id: edgeId, chatbotId },
+    });
+
+    if (!existingEdge) {
+      throw new Error('Conexão não encontrada neste chatbot');
+    }
+
+    await prisma.edge.delete({
+      where: { id: edgeId },
+    });
+
+    return { message: 'Conexão deletada com sucesso' };
+  }
 }
