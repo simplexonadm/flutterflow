@@ -664,9 +664,9 @@ CMD ["node", "dist/server.js"]
 - [x] Testes
 
 ### Métricas
-- [ ] Cálculos de métricas
-- [ ] Endpoints
-- [ ] Testes
+- [x] Cálculos de métricas
+- [x] Endpoints
+- [x] Testes
 
 ### Frontend
 - [ ] Serviço HTTP
