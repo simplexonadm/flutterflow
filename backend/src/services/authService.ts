@@ -40,11 +40,11 @@ export class AuthService {
    */
   static generateTokens(payload: UserPayload): AuthTokens {
     const accessToken = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRATION,
+      expiresIn: JWT_EXPIRATION as jwt.SignOptions['expiresIn'],
     });
 
     const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, {
-      expiresIn: JWT_REFRESH_EXPIRATION,
+      expiresIn: JWT_REFRESH_EXPIRATION as jwt.SignOptions['expiresIn'],
     });
 
     return { accessToken, refreshToken };
