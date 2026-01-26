@@ -43,7 +43,7 @@ const Editor = () => {
     setDraggedBlockType(null);
   }, [chatbot, updateBlocks, setChatbot]);
 
-  const handleUpdateEdges = useCallback((edges: typeof chatbot?.edges) => {
+  const handleUpdateEdges = useCallback((edges: typeof chatbot.edges) => {
     if (!chatbot || !edges) return;
     const updatedChatbot = { ...chatbot, edges };
     setChatbot(updatedChatbot);
