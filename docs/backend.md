@@ -658,10 +658,10 @@ CMD ["node", "dist/server.js"]
 - [x] Testes
 
 ### Leads
-- [ ] Model Lead, LeadAnswer
-- [ ] Endpoint de captura
-- [ ] Listagem e filtros
-- [ ] Testes
+- [x] Model Lead, LeadAnswer
+- [x] Endpoint de captura
+- [x] Listagem e filtros
+- [x] Testes
 
 ### Métricas
 - [ ] Cálculos de métricas

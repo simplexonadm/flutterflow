@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { errorMiddleware } from './middleware/authMiddleware';
 import authRoutes from './routes/authRoutes';
 import chatbotRoutes from './routes/chatbotRoutes';
+import leadRoutes from './routes/leadRoutes';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/chatbots', chatbotRoutes);
+app.use('/api/chatbots', leadRoutes); // Mount leads under chatbots for consistent URL structure
 
 // 404
 app.use((req: Request, res: Response) => {
