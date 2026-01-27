@@ -636,44 +636,44 @@ CMD ["node", "dist/server.js"]
 ## 12. Checklist de Implementação
 
 ### Setup & Database
-- [ ] Criar projeto backend
-- [ ] Instalar dependências
-- [ ] Configurar PostgreSQL
-- [ ] Setup Prisma
-- [ ] Criar migration inicial
-- [ ] Validar conexão
+- [x] Criar projeto backend
+- [x] Instalar dependências
+- [x] Configurar PostgreSQL
+- [x] Setup Prisma
+- [x] Criar migration inicial
+- [x] Validar conexão
 
 ### Autenticação
-- [ ] Model User no Prisma
-- [ ] Hash de senhas
-- [ ] Routes de auth
-- [ ] JWT tokens
-- [ ] Middleware de autenticação
-- [ ] Refresh token logic
+- [x] Model User no Prisma
+- [x] Hash de senhas
+- [x] Routes de auth
+- [x] JWT tokens
+- [x] Middleware de autenticação
+- [x] Refresh token logic
 
 ### Chatbots
-- [ ] Models Block, Edge, Chatbot
-- [ ] Controllers CRUD
-- [ ] Validações
-- [ ] Testes
+- [x] Models Block, Edge, Chatbot
+- [x] Controllers CRUD
+- [x] Validações
+- [x] Testes
 
 ### Leads
-- [ ] Model Lead, LeadAnswer
-- [ ] Endpoint de captura
-- [ ] Listagem e filtros
-- [ ] Testes
+- [x] Model Lead, LeadAnswer
+- [x] Endpoint de captura
+- [x] Listagem e filtros
+- [x] Testes
 
 ### Métricas
-- [ ] Cálculos de métricas
-- [ ] Endpoints
-- [ ] Testes
+- [x] Cálculos de métricas
+- [x] Endpoints
+- [x] Testes
 
 ### Frontend
-- [ ] Serviço HTTP
-- [ ] Atualizar hooks
-- [ ] Remover mock data
+- [x] Serviço HTTP
+- [x] Atualizar hooks
+- [x] Remover mock data
 - [ ] Testes e-2-e
-- [ ] Integração completa
+- [x] Integração completa
 
 ---
 

@@ -5,17 +5,17 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, CheckCircle, Loader2 } from 'lucide-react';
-import type { Chatbot, Block } from '@/types/chatbot';
-
-const STORAGE_KEY = 'leadchat_chatbots';
+import type { Block } from '@/types/chatbot';
+import { useChatbot } from '@/hooks/useChatbot';
+import { useLeadCapture } from '@/hooks/useLeadCapture';
 
 const FormView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { chatbot, loading, fetchPublicChatbot } = useChatbot(id);
+  const { leadId, startLead, updateLeadAnswers } = useLeadCapture(id);
   
-  const [chatbot, setChatbot] = useState<Chatbot | null>(null);
-  const [loading, setLoading] = useState(true);
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentInput, setCurrentInput] = useState('');
@@ -23,24 +23,19 @@ const FormView = () => {
   const [messages, setMessages] = useState<{ type: 'bot' | 'user'; text: string }[]>([]);
 
   useEffect(() => {
-    const loadChatbot = async () => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const data = localStorage.getItem(STORAGE_KEY);
-      const chatbots: Chatbot[] = data ? JSON.parse(data) : [];
-      const found = chatbots.find(c => c.id === id);
-      setChatbot(found || null);
-      setLoading(false);
-      
-      if (found) {
-        const orderedBlocks = [...found.blocks].sort((a, b) => a.position.y - b.position.y);
-        const startBlock = orderedBlocks[0];
-        if (startBlock?.config.message) {
-          setMessages([{ type: 'bot', text: startBlock.config.message }]);
-        }
+    fetchPublicChatbot();
+  }, [fetchPublicChatbot]);
+
+  useEffect(() => {
+    if (chatbot && messages.length === 0) {
+      const orderedBlocks = [...chatbot.blocks].sort((a, b) => a.position.y - b.position.y);
+      const startBlock = orderedBlocks[0];
+      if (startBlock?.config.message) {
+        setMessages([{ type: 'bot', text: startBlock.config.message }]);
       }
-    };
-    loadChatbot();
-  }, [id]);
+      startLead();
+    }
+  }, [chatbot, messages.length, startLead]);
 
   if (loading) {
     return (
@@ -75,8 +70,10 @@ const FormView = () => {
 
     setMessages(prev => [...prev, { type: 'user', text: currentInput }]);
     
+    const newAnswers = { ...answers };
     if (currentBlock.config.variableName) {
-      setAnswers(prev => ({ ...prev, [currentBlock.config.variableName!]: currentInput }));
+      newAnswers[currentBlock.config.variableName] = currentInput;
+      setAnswers(newAnswers);
     }
 
     setCurrentInput('');
@@ -92,10 +89,14 @@ const FormView = () => {
         
         if (nextBlock.type === 'end') {
           setIsComplete(true);
+          updateLeadAnswers(newAnswers, 'COMPLETED');
+        } else {
+          updateLeadAnswers(newAnswers, 'STARTED');
         }
       }, 500);
     } else {
       setIsComplete(true);
+      updateLeadAnswers(newAnswers, 'COMPLETED');
     }
   };
 
@@ -104,8 +105,10 @@ const FormView = () => {
 
     setMessages(prev => [...prev, { type: 'user', text: option }]);
     
+    const newAnswers = { ...answers };
     if (currentBlock.config.variableName) {
-      setAnswers(prev => ({ ...prev, [currentBlock.config.variableName!]: option }));
+      newAnswers[currentBlock.config.variableName] = option;
+      setAnswers(newAnswers);
     }
 
     const nextIndex = currentBlockIndex + 2;
@@ -119,10 +122,14 @@ const FormView = () => {
         
         if (nextBlock.type === 'end') {
           setIsComplete(true);
+          updateLeadAnswers(newAnswers, 'COMPLETED');
+        } else {
+          updateLeadAnswers(newAnswers, 'STARTED');
         }
       }, 500);
     } else {
       setIsComplete(true);
+      updateLeadAnswers(newAnswers, 'COMPLETED');
     }
   };
 

@@ -8,7 +8,7 @@ import EditorCanvas from '@/components/editor/EditorCanvas';
 import BlockConfigPanel from '@/components/editor/BlockConfigPanel';
 import ChatPreview from '@/components/editor/ChatPreview';
 import PublishDialog from '@/components/editor/PublishDialog';
-import { useChatbot } from '@/hooks/useMockApi';
+import { useChatbot } from '@/hooks/useChatbot';
 import type { BlockType, Block, ChatbotTheme } from '@/types/chatbot';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +48,13 @@ const Editor = () => {
     const updatedChatbot = { ...chatbot, edges };
     setChatbot(updatedChatbot);
     updateBlocks(chatbot.blocks, edges);
+  }, [chatbot, updateBlocks, setChatbot]);
+
+  const handleUpdateContent = useCallback((blocks: Block[], edges: typeof chatbot.edges) => {
+    if (!chatbot) return;
+    const updatedChatbot = { ...chatbot, blocks, edges };
+    setChatbot(updatedChatbot);
+    updateBlocks(blocks, edges);
   }, [chatbot, updateBlocks, setChatbot]);
 
   const handleUpdateBlockConfig = useCallback((config: Block['config']) => {
@@ -153,6 +160,7 @@ const Editor = () => {
           onSelectBlock={setSelectedBlockId}
           onUpdateBlocks={handleUpdateBlocks}
           onUpdateEdges={handleUpdateEdges}
+          onUpdateContent={handleUpdateContent}
           draggedBlockType={draggedBlockType}
         />
 

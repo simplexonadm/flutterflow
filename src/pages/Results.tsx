@@ -3,7 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Download, Eye, Search, BarChart3, Users, TrendingUp, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Header from '@/components/layout/Header';
-import { useChatbot, useLeads } from '@/hooks/useMockApi';
+import { useChatbot } from '@/hooks/useChatbot';
+import { useLeads } from '@/hooks/useLeads';
+import { useMetrics } from '@/hooks/useMetrics';
 import type { Lead } from '@/types/chatbot';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,14 +37,14 @@ import {
 const Results = () => {
   const { id } = useParams<{ id: string }>();
   const { chatbot, loading: chatbotLoading } = useChatbot(id);
-  const { leads, loading: leadsLoading, getMetrics, exportToCSV } = useLeads(id);
+  const { leads, loading: leadsLoading, exportToCSV } = useLeads(id);
+  const { metrics, loading: metricsLoading } = useMetrics(id);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-  const metrics = getMetrics();
-  const loading = chatbotLoading || leadsLoading;
+  const loading = chatbotLoading || leadsLoading || metricsLoading;
 
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch = 
@@ -138,13 +140,13 @@ const Results = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Visualizações
+                Iniciados
               </CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-display">{metrics.totalViews}</div>
-              <p className="text-xs text-muted-foreground">Últimos 30 dias</p>
+              <div className="text-3xl font-bold font-display">{metrics?.startedLeads || 0}</div>
+              <p className="text-xs text-muted-foreground">Total de conversas</p>
             </CardContent>
           </Card>
           
@@ -156,7 +158,7 @@ const Results = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-display text-primary">{metrics.totalLeads}</div>
+              <div className="text-3xl font-bold font-display text-primary">{metrics?.totalLeads || 0}</div>
               <p className="text-xs text-muted-foreground">Total de contatos</p>
             </CardContent>
           </Card>
@@ -164,13 +166,13 @@ const Results = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Taxa de Conversão
+                Completados
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-display text-success">{metrics.conversionRate.toFixed(1)}%</div>
-              <p className="text-xs text-muted-foreground">Leads / Visualizações</p>
+              <div className="text-3xl font-bold font-display text-success">{metrics?.completedLeads || 0}</div>
+              <p className="text-xs text-muted-foreground">Leads finalizados</p>
             </CardContent>
           </Card>
           
@@ -182,7 +184,7 @@ const Results = () => {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-display">{metrics.completionRate.toFixed(1)}%</div>
+              <div className="text-3xl font-bold font-display">{(metrics?.completionRate || 0).toFixed(1)}%</div>
               <p className="text-xs text-muted-foreground">Finalizaram / Iniciaram</p>
             </CardContent>
           </Card>

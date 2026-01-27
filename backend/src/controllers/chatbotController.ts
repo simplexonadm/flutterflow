@@ -44,6 +44,19 @@ export const getChatbot = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * GET /api/chatbots/public/all
+ * Listar todos os chatbots publicados (público)
+ */
+export const getPublishedChatbots = async (req: Request, res: Response) => {
+  try {
+    const chatbots = await ChatbotService.getPublishedChatbots();
+    return res.status(200).json({ chatbots });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Erro ao listar chatbots publicados' });
+  }
+};
+
+/**
  * POST /api/chatbots
  * Criar novo chatbot
  */
@@ -262,4 +275,137 @@ export const validateUpdateContent = [
   param('id').isUUID().withMessage('ID inválido'),
   body('blocks').optional().isArray().withMessage('blocks deve ser um array'),
   body('edges').optional().isArray().withMessage('edges deve ser um array'),
+];
+
+/**
+ * POST /api/chatbots/:id/blocks
+ * Adicionar bloco individual
+ */
+export const addBlock = async (req: AuthRequest, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    if (!req.userId) return res.status(401).json({ error: 'Não autenticado' });
+
+    const { id } = req.params;
+    const block = await ChatbotService.createBlock(id, req.userId, req.body);
+
+    return res.status(201).json({ message: 'Bloco criado com sucesso', block });
+  } catch (error: any) {
+    if (error.message === 'Chatbot não encontrado') return res.status(404).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao criar bloco' });
+  }
+};
+
+/**
+ * PUT /api/chatbots/:id/blocks/:blockId
+ * Atualizar bloco individual
+ */
+export const editBlock = async (req: AuthRequest, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    if (!req.userId) return res.status(401).json({ error: 'Não autenticado' });
+
+    const { id, blockId } = req.params;
+    const block = await ChatbotService.updateBlock(blockId, id, req.userId, req.body);
+
+    return res.status(200).json({ message: 'Bloco atualizado com sucesso', block });
+  } catch (error: any) {
+    if (error.message.includes('não encontrado')) return res.status(404).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao atualizar bloco' });
+  }
+};
+
+/**
+ * DELETE /api/chatbots/:id/blocks/:blockId
+ * Deletar bloco individual
+ */
+export const removeBlock = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.userId) return res.status(401).json({ error: 'Não autenticado' });
+
+    const { id, blockId } = req.params;
+    await ChatbotService.deleteBlock(blockId, id, req.userId);
+
+    return res.status(200).json({ message: 'Bloco deletado com sucesso' });
+  } catch (error: any) {
+    if (error.message.includes('não encontrado')) return res.status(404).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao deletar bloco' });
+  }
+};
+
+/**
+ * Validações para Bloco
+ */
+export const validateBlock = [
+  param('id').isUUID().withMessage('ID do chatbot inválido'),
+  body('type').notEmpty().withMessage('Tipo do bloco é obrigatório'),
+  body('position').optional().isObject().withMessage('Posição deve ser um objeto'),
+  body('config').optional().isObject().withMessage('Configuração deve ser um objeto'),
+];
+
+/**
+ * POST /api/chatbots/:id/edges
+ * Adicionar edge individual
+ */
+export const addEdge = async (req: AuthRequest, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    if (!req.userId) return res.status(401).json({ error: 'Não autenticado' });
+
+    const { id } = req.params;
+    const edge = await ChatbotService.createEdge(id, req.userId, req.body);
+
+    return res.status(201).json({ message: 'Conexão criada com sucesso', edge });
+  } catch (error: any) {
+    if (error.message.includes('não encontrado')) return res.status(404).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao criar conexão' });
+  }
+};
+
+/**
+ * DELETE /api/chatbots/:id/edges/:edgeId
+ * Deletar edge individual
+ */
+export const removeEdge = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.userId) return res.status(401).json({ error: 'Não autenticado' });
+
+    const { id, edgeId } = req.params;
+    await ChatbotService.deleteEdge(edgeId, id, req.userId);
+
+    return res.status(200).json({ message: 'Conexão deletada com sucesso' });
+  } catch (error: any) {
+    if (error.message.includes('não encontrada')) return res.status(404).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao deletar conexão' });
+  }
+};
+
+/**
+ * Validações para Edge
+ */
+export const validateEdge = [
+  param('id').isUUID().withMessage('ID do chatbot inválido'),
+  body('source').isUUID().withMessage('ID do bloco de origem inválido'),
+  body('target').isUUID().withMessage('ID do bloco de destino inválido'),
+  body('label').optional().isString().withMessage('Label deve ser string'),
+];
+
+export const validateUpdateBlock = [
+  param('id').isUUID().withMessage('ID do chatbot inválido'),
+  param('blockId').isUUID().withMessage('ID do bloco inválido'),
+  body('type').optional().notEmpty().withMessage('Tipo do bloco não pode ser vazio'),
+  body('position').optional().isObject().withMessage('Posição deve ser um objeto'),
+  body('config').optional().isObject().withMessage('Configuração deve ser um objeto'),
 ];

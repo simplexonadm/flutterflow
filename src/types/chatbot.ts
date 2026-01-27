@@ -55,6 +55,9 @@ export interface Chatbot {
   theme: ChatbotTheme;
   blocks: Block[];
   edges: Edge[];
+  _count?: {
+    leads: number;
+  };
 }
 
 export interface LeadAnswer {

@@ -5,27 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Eye, LogOut } from 'lucide-react';
-import type { Chatbot } from '@/types/chatbot';
-
-const STORAGE_KEY = 'leadchat_chatbots';
+import { useChatbots } from '@/hooks/useChatbots';
 
 const ClientForms = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [chatbots, setChatbots] = useState<Chatbot[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { chatbots, loading, fetchPublishedChatbots } = useChatbots();
 
   useEffect(() => {
-    const loadChatbots = async () => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const data = localStorage.getItem(STORAGE_KEY);
-      const allChatbots: Chatbot[] = data ? JSON.parse(data) : [];
-      const publishedChatbots = allChatbots.filter(c => c.isPublished);
-      setChatbots(publishedChatbots);
-      setLoading(false);
-    };
-    loadChatbots();
-  }, []);
+    fetchPublishedChatbots();
+  }, [fetchPublishedChatbots]);
 
   const handleLogout = () => {
     logout();

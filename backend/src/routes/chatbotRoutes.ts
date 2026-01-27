@@ -7,10 +7,19 @@ import {
   deleteChatbot,
   publishChatbot,
   getPublicChatbot,
+  getPublishedChatbots,
   updateChatbotContent,
+  addBlock,
+  editBlock,
+  removeBlock,
+  addEdge,
+  removeEdge,
   validateCreateChatbot,
   validateUpdateChatbot,
   validateUpdateContent,
+  validateBlock,
+  validateUpdateBlock,
+  validateEdge,
 } from '../controllers/chatbotController';
 import { authMiddleware } from '../middleware/authMiddleware';
 
@@ -53,6 +62,12 @@ router.delete('/:id', authMiddleware, deleteChatbot);
 router.post('/:id/publish', authMiddleware, publishChatbot);
 
 /**
+ * GET /api/chatbots/public/all
+ * Listar todos os chatbots publicados (sem autenticação)
+ */
+router.get('/public/all', getPublishedChatbots);
+
+/**
  * GET /api/chatbots/:id/public
  * Obter chatbot público (sem autenticação)
  */
@@ -63,5 +78,18 @@ router.get('/:id/public', getPublicChatbot);
  * Atualizar blocos e edges do chatbot (protegido)
  */
 router.put('/:id/content', authMiddleware, validateUpdateContent, updateChatbotContent);
+
+/**
+ * Rotas de Blocos individuais
+ */
+router.post('/:id/blocks', authMiddleware, validateBlock, addBlock);
+router.put('/:id/blocks/:blockId', authMiddleware, validateUpdateBlock, editBlock);
+router.delete('/:id/blocks/:blockId', authMiddleware, removeBlock);
+
+/**
+ * Rotas de Edges individuais
+ */
+router.post('/:id/edges', authMiddleware, validateEdge, addEdge);
+router.delete('/:id/edges/:edgeId', authMiddleware, removeEdge);
 
 export default router;

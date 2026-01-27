@@ -4,7 +4,7 @@ import { X, Send } from 'lucide-react';
 import type { Chatbot, Block } from '@/types/chatbot';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useChatSession } from '@/hooks/useMockApi';
+import { useChatSession } from '@/hooks/useChatSession';
 
 interface ChatPreviewProps {
   chatbot: Chatbot;
