@@ -32,9 +32,11 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server (frontend and backend) with auto-reloading and an instant preview.
 npm run dev
 ```
+
+> **Note**: This command starts both the frontend on port 5000 and the backend on port 3000 concurrently.
 
 **Edit a file directly in GitHub**
 
