@@ -10,6 +10,7 @@ interface EditorCanvasProps {
   onSelectBlock: (id: string | null) => void;
   onUpdateBlocks: (blocks: Block[]) => void;
   onUpdateEdges: (edges: Edge[]) => void;
+  onUpdateContent: (blocks: Block[], edges: Edge[]) => void;
   draggedBlockType: BlockType | null;
 }
 
@@ -20,6 +21,7 @@ const EditorCanvas = ({
   onSelectBlock,
   onUpdateBlocks,
   onUpdateEdges,
+  onUpdateContent,
   draggedBlockType,
 }: EditorCanvasProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -109,11 +111,8 @@ const EditorCanvas = ({
       console.log('📊 Bloco foi removido?', !updatedBlocks.find(b => b.id === blockId));
       console.log('🔌 Edges antes:', edges.length, '| depois:', updatedEdges.length);
       
-      console.log('📤 Chamando onUpdateBlocks com', updatedBlocks.length, 'blocos');
-      onUpdateBlocks(updatedBlocks);
-      
-      console.log('📤 Chamando onUpdateEdges com', updatedEdges.length, 'edges');
-      onUpdateEdges(updatedEdges);
+      console.log('📤 Chamando onUpdateContent com', updatedBlocks.length, 'blocos e', updatedEdges.length, 'edges');
+      onUpdateContent(updatedBlocks, updatedEdges);
       
       onSelectBlock(null);
       console.log('✅ DELETE COMPLETADO');

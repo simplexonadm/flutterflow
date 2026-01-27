@@ -50,6 +50,13 @@ const Editor = () => {
     updateBlocks(chatbot.blocks, edges);
   }, [chatbot, updateBlocks, setChatbot]);
 
+  const handleUpdateContent = useCallback((blocks: Block[], edges: typeof chatbot.edges) => {
+    if (!chatbot) return;
+    const updatedChatbot = { ...chatbot, blocks, edges };
+    setChatbot(updatedChatbot);
+    updateBlocks(blocks, edges);
+  }, [chatbot, updateBlocks, setChatbot]);
+
   const handleUpdateBlockConfig = useCallback((config: Block['config']) => {
     if (!chatbot || !selectedBlockId) return;
     
@@ -153,6 +160,7 @@ const Editor = () => {
           onSelectBlock={setSelectedBlockId}
           onUpdateBlocks={handleUpdateBlocks}
           onUpdateEdges={handleUpdateEdges}
+          onUpdateContent={handleUpdateContent}
           draggedBlockType={draggedBlockType}
         />
 
