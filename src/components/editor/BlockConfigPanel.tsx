@@ -92,7 +92,7 @@ const BlockConfigPanel = ({ block, onUpdate }: BlockConfigPanelProps) => {
           </div>
         );
 
-      case 'choice':
+      case 'choice': {
         const options = block.config.options || ['Opção 1', 'Opção 2'];
         
         return (
@@ -159,6 +159,7 @@ const BlockConfigPanel = ({ block, onUpdate }: BlockConfigPanelProps) => {
             </div>
           </div>
         );
+      }
 
       case 'condition':
         return (

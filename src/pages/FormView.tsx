@@ -29,8 +29,8 @@ const FormView = () => {
   useEffect(() => {
     if (chatbot && messages.length === 0) {
       const orderedBlocks = [...chatbot.blocks].sort((a, b) => a.position.y - b.position.y);
-      const startBlock = orderedBlocks[0];
-      if (startBlock?.config.message) {
+      const startBlock = orderedBlocks.find(b => b.type === 'start') || orderedBlocks[0];
+      if (startBlock?.config?.message) {
         setMessages([{ type: 'bot', text: startBlock.config.message }]);
       }
       startLead();
@@ -58,7 +58,8 @@ const FormView = () => {
   }
 
   const orderedBlocks = [...chatbot.blocks].sort((a, b) => a.position.y - b.position.y);
-  const currentBlock = orderedBlocks[currentBlockIndex + 1];
+  const playableBlocks = orderedBlocks.filter(b => b.type !== 'start');
+  const currentBlock = playableBlocks[currentBlockIndex] || null;
 
   const replaceVariables = (text: string): string => {
     return text.replace(/\{\{(\w+)\}\}/g, (_, varName) => answers[varName] || `{{${varName}}}`);
@@ -78,8 +79,8 @@ const FormView = () => {
 
     setCurrentInput('');
 
-    const nextIndex = currentBlockIndex + 2;
-    const nextBlock = orderedBlocks[nextIndex];
+    const nextIndex = currentBlockIndex + 1;
+    const nextBlock = playableBlocks[nextIndex];
 
     if (nextBlock) {
       setTimeout(() => {
@@ -111,8 +112,8 @@ const FormView = () => {
       setAnswers(newAnswers);
     }
 
-    const nextIndex = currentBlockIndex + 2;
-    const nextBlock = orderedBlocks[nextIndex];
+    const nextIndex = currentBlockIndex + 1;
+    const nextBlock = playableBlocks[nextIndex];
 
     if (nextBlock) {
       setTimeout(() => {
@@ -166,7 +167,7 @@ const FormView = () => {
               <div>
                 <h2 className="font-semibold">{chatbot.name}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {isComplete ? 'Concluído' : `Etapa ${currentBlockIndex + 1} de ${orderedBlocks.length - 1}`}
+                  {isComplete ? 'Concluído' : `Etapa ${currentBlockIndex + 1} de ${playableBlocks.length}`}
                 </p>
               </div>
             </div>
