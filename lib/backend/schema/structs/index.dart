@@ -1,0 +1,24 @@
+export '/backend/schema/util/schema_util.dart';
+
+export 'debug_struct.dart';
+export 'dt_periodo_struct.dart';
+export 'dtloop_struct.dart';
+export 'ennum_item_formulario_struct.dart';
+export 'enuns_struct.dart';
+export 'administrativo_struct.dart';
+export 'dt_controlado_struct.dart';
+export 'dt_controle_offline_struct.dart';
+export 'dt_empresa_struct.dart';
+export 'dt_endereco_struct.dart';
+export 'dt_formulario_struct.dart';
+export 'dt_fornecedor_struct.dart';
+export 'dt_item_formulario_struct.dart';
+export 'dt_local_de_producao_struct.dart';
+export 'dt_modulo_struct.dart';
+export 'dt_nivel_de_acesso_struct.dart';
+export 'dt_problema_recorrente_struct.dart';
+export 'dt_produto_final_struct.dart';
+export 'dt_submodulos_struct.dart';
+export 'dt_user_struct.dart';
+export 'filtro_struct.dart';
+export 'navegacao_struct.dart';
